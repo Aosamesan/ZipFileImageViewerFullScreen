@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,7 +23,28 @@ namespace ZipFileImageViewerFullScreen
     {
         public MainWindow()
         {
+#if false
+            AllocConsole();
+#endif
             InitializeComponent();
+#if false
+            Closed += (sender, e) => FreeConsole();
+#endif
+            Loaded += MakeNoTaskbar;
+        }
+
+        protected override void ParentLayoutInvalidated(UIElement child)
+        {
+            base.ParentLayoutInvalidated(child);
+            MakeNoTaskbar(null, null);
+        }
+
+        private void MakeNoTaskbar(object sender, EventArgs e)
+        {
+            Top = 0;
+            Left = 0;
+            Width = SystemParameters.WorkArea.Width;
+            Height = SystemParameters.WorkArea.Height;
         }
 
         private WindowState MinimizeCommand_GetCurrentState()
@@ -39,5 +61,14 @@ namespace ZipFileImageViewerFullScreen
         {
             Close();
         }
+
+
+#if false
+        [DllImport("Kernel32")]
+        public static extern void AllocConsole();
+
+        [DllImport("Kernel32")]
+        public static extern void FreeConsole();
+#endif
     }
 }

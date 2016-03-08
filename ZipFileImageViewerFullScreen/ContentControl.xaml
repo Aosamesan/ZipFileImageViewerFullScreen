@@ -6,39 +6,45 @@
              xmlns:local="clr-namespace:ZipFileImageViewerFullScreen"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1280" Background="White">
+    <UserControl.Resources>
+        <local:ImageCollectionViewModel x:Key="ImageCollection" AfterFileOpened="ImageCollectionViewModel_AfterFileOpened" />
+    </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
-            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="6*"/>
         </Grid.ColumnDefinitions>
-        <Grid>
+        <Grid  Margin="-1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Border Padding="10" Background="Black">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="50"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="OpenFile" FontSize="40" Foreground="White"/>
-                    <TextBlock Grid.Row="1" Foreground="LightGray" Text="FilePath" TextAlignment="Right" Margin="0 5"/>
-                    <Button Background="Transparent" BorderThickness="0" Foreground="White" Grid.Row="2" Padding="5">Open</Button>
+
+                    <Viewbox>
+                        <TextBlock Foreground="LightGray" Text="{Binding Source={StaticResource ImageCollection},Path=ZipFilePath}" TextAlignment="Right" Margin="0 5"/>
+                    </Viewbox>
+                    <Button Background="Transparent" BorderThickness="0" Foreground="White" Grid.Row="1" Padding="5"
+                            Command="{Binding Source={StaticResource ImageCollection},Path=OpenCommand}">Open</Button>
                 </Grid>
             </Border>
-            <ListView Grid.Row="1" BorderThickness="0" Padding="-1">
+            <ListView Grid.Row="1" BorderThickness="0" Margin="-1" Padding="-1" ItemsSource="{Binding Source={StaticResource ImageCollection},Path=ImageItems}"
+                      ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Name="ImageList">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ListViewItem">
-                                    <Grid>
-                                        <Border Padding="10" Margin="0" Name="ItemBorder">
-                                            <TextBlock Name="ItemText" Foreground="Black" FontSize="20" Text="{TemplateBinding Content}" />
-                                        </Border>
-                                    </Grid>
+                                    <Border Margin="0" Name="ItemBorder" VerticalAlignment="Stretch">
+                                        <TextBlock Name="ItemText" Foreground="Black" FontSize="20" Text="{Binding Name}"
+                                                   VerticalAlignment="Stretch" Padding="10" TextTrimming="CharacterEllipsis"/>
+                                    </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsSelected" Value="True">
                                             <Setter TargetName="ItemBorder" Property="Background" Value="Black" />
@@ -50,16 +56,94 @@
                         </Setter>
                     </Style>
                 </ListView.ItemContainerStyle>
-
-                <ListView.Items>
-                    <ListViewItem IsSelected="True">foo</ListViewItem>
-                    <ListViewItem >bar</ListViewItem>
-                    <ListViewItem>hello</ListViewItem>
-                    <ListViewItem>world</ListViewItem>
-                </ListView.Items>
             </ListView>
+
+            <Border Grid.Row="2" Background="Black">
+                <Grid Grid.Row="2" Margin="2.5">
+                    <ComboBox Name="ViewModeComboBox">
+                        <ComboBox.Items>
+                            <ComboBoxItem IsSelected="True">
+                                <local:ViewMode ModeName="Original" Horizontal="Hidden" Vertical="Hidden" Stretch="None" />
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <local:ViewMode ModeName="Entire" Horizontal="Disabled" Vertical="Disabled" Stretch="Uniform" />
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <local:ViewMode ModeName="Fit width" Horizontal="Disabled" Vertical="Hidden" Stretch="Uniform" />
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <local:ViewMode ModeName="Fit height" Horizontal="Hidden" Vertical="Disabled" Stretch="Uniform" />
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <local:ViewMode ModeName="Fill" Horizontal="Disabled" Vertical="Disabled" Stretch="Fill" />
+                            </ComboBoxItem>
+                        </ComboBox.Items>
+                    </ComboBox>
+                </Grid>
+            </Border>
         </Grid>
 
-        <Grid Grid.Column="1" Background="Black" />
+        <Grid Grid.Column="1" Background="Black">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.Resources>
+                <local:ImageCommand x:Name="PrevImage" x:Key="PrevImageCommand" CanExecuteAction="PrevImage_CanExecuteAction"
+                                    ExecuteAction="PrevImage_ExecuteAction" />
+                <local:ImageCommand x:Name="NextImage" x:Key="NextImageCommand" CanExecuteAction="NextImage_CanExecuteAction"
+                                    ExecuteAction="NextImage_ExecuteAction" />
+                <Style TargetType="Button" x:Key="SlideButtonStyle">
+                    <Setter Property="Foreground" Value="Gray" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Opacity" Value=".7" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Grid Name="ButtonGrid" Opacity="{TemplateBinding Opacity}" Background="{TemplateBinding Background}"
+                                      VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                    <TextBlock FontSize="{TemplateBinding FontSize}"
+                                               VerticalAlignment="Center" HorizontalAlignment="Center"
+                                               Foreground="{TemplateBinding Foreground}">
+                                        <ContentPresenter />
+                                    </TextBlock>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="ButtonGrid" Property="Opacity" Value="1" />
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter TargetName="ButtonGrid" Property="Opacity" Value=".2" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Grid.Resources>
+
+            <Button Grid.Row="1" FontSize="50" Style="{StaticResource SlideButtonStyle}"
+                    Command="{StaticResource PrevImageCommand}">◀</Button>
+            <Button Grid.Row="1" FontSize="50" Grid.Column="2" Style="{StaticResource SlideButtonStyle}"
+                    Command="{StaticResource NextImageCommand}">▶</Button>
+
+            <ScrollViewer PanningMode="Both"
+                          Grid.ColumnSpan="3"
+                          Grid.RowSpan="3"
+                          Panel.ZIndex="-1"
+                          HorizontalScrollBarVisibility="{Binding ElementName=ViewModeComboBox,Path=SelectedItem.Content.Horizontal}"
+                          VerticalScrollBarVisibility="{Binding ElementName=ViewModeComboBox,Path=SelectedItem.Content.Vertical}">
+                <Image Source="{Binding ElementName=ImageList,Path=SelectedItem.Image}" 
+                       Stretch="{Binding ElementName=ViewModeComboBox,Path=SelectedItem.Content.Stretch}"
+                       />
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

@@ -24,5 +24,31 @@ namespace ZipFileImageViewerFullScreen
         {
             InitializeComponent();
         }
+
+        private bool PrevImage_CanExecuteAction()
+        {
+            return ImageList.SelectedIndex > 0;
+        }
+
+        private void PrevImage_ExecuteAction()
+        {
+            ImageList.SelectedIndex = ImageList.SelectedIndex - 1;
+        }
+
+        private bool NextImage_CanExecuteAction()
+        {
+            return ImageList.SelectedIndex < ImageList.Items.Count - 1;
+        }
+
+        private void NextImage_ExecuteAction()
+        {
+            ImageList.SelectedIndex = ImageList.SelectedIndex + 1;
+        }
+
+        private void ImageCollectionViewModel_AfterFileOpened()
+        {
+            if (ImageList.Items.Count > 0)
+                ImageList.SelectedIndex = 0;
+        }
     }
 }
